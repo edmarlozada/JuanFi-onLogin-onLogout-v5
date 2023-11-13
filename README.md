@@ -8,7 +8,7 @@
 
 ### Facebook Contact:
 
-What new in v5.1a (2023-11-13)
+What new in v5.1b (2023-11-13)
 - no need to define hotspot folder! ( major )
 - full error report on logs
 - user scheduler is created first
@@ -210,8 +210,6 @@ if ($iValidity>=0 and ($iExtUCode=0 or $iExtUCode=1)) do={
                     "Sale Amount: $iSalesAmt%0A".\
                     "Total Today: $iSalesToday%0A".\
                     "Total Month: $iSalesMonth%0A".\
-                    "Vendo Today: $iVendoToday%0A".\
-                    "Vendo Month: $iVendoMonth%0A".\
                     "<<=====================>>")
     local iMessage [$eReplace ($iMessage) " " "%20"]
     /tool fetch url="https://api.telegram.org/bot$iTGBotToken/sendmessage?chat_id=$iTGrpChatID&text=$iMessage" keep-result=no
