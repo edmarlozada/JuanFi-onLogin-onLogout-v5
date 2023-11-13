@@ -1,13 +1,5 @@
 # JuanFi onLogin/onLogout v5
 
-### Author:
-- Chloe Renae & Edmar Lozada
-
-### Facebook Contact:
-- https://www.facebook.com/chloe.renae.9
-
-### Facebook Contact:
-
 What new in v5.1b (2023-11-13)
 - no need to define hotspot folder! ( major )
 - full error report on logs
@@ -20,6 +12,12 @@ What new in v5.1b (2023-11-13)
 
 WARNING:
 - test first before deploy!
+
+### Author:
+- Chloe Renae & Edmar Lozada
+
+### Facebook Contact:
+- https://www.facebook.com/chloe.renae.9
 
 ### Add this script in the hotspot user profile on login/onLogout event
 
