@@ -90,8 +90,8 @@ if ($iValidity>=0 and ($iExtUCode=0 or $iExtUCode=1)) do={
   if ($iValidity != 0s and $iInterval < $iUsrTime) do={ set iInterval ($iUsrTime + $iValidity) }; # BUG FIX
   # if ($iValidity = 0s and $iUsrTime > 1d) do={ set iInterval $iUsrTime }; # BUG FIX (temporary)
   /system scheduler set [find name=$iUser] interval=$iInterval
-  /ip hotspot user set [find name=$iUser] email="active@gmail.com"
   /ip hotspot user set [find name=$iUser] comment=""
+  /ip hotspot user set [find name=$iUser] email="active@gmail.com"
   log info "( $iUser ) iValidity=[$iValidity] iInterval=[$iInterval]"
   } on-error={log error "( $iUser ) ONLOGIN ERROR! Update User Module"}
 
