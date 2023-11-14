@@ -2,14 +2,15 @@
 
 What's in v5 (2023-11-13)
 - no need to define hotspot folder! { important }
-- full error report on logs ( full )
+- create logs for full error report ( full/normal )
 - user scheduler is created first ( full/normal/lite )
 - cancel user login if scheduler not created ( full/normal )
-- log AddNew/Extend user ( full/normal )
+- create logs for AddNew/Extend user ( full/normal )
 - extend code is used ( full/normal/lite )
-- sales update functionalize ( full/normal )
 - auto create data folder if missing ( full )
 - auto create sales files if missing ( full )
+- sales update functionalize ( full/normal )
+- telegram reporting ( full/normal )
 
 WARNING:
 - test first before deploy!
@@ -68,7 +69,8 @@ if ($iValidity>=0 and ($iExtUCode=0 or $iExtUCode=1)) do={
     /system scheduler add name=$iUser interval=0 \
     on-event=("# EXPIRE ( $iUser ) #\r\n".\
               "do {\r\n".\
-              "local iUser $iUser; local iDMac $iDMac; local iHotSpot $iHotSpot; local iUsrFile $iUsrFile\r\n".\
+              "local iUser $iUser; local iDMac $iDMac\r\n".\
+              "local iUsrFile $iUsrFile; local iHotSpot $iHotSpot\r\n".\
               "log info \"EXPIRE USER ( Validity ) => user=[\$iUser] mac=[\$iDMac]\"\r\n".\
               "/ip hotspot active remove [find user=\$iUser]\r\n".\
               "/ip hotspot cookie remove [find user=\$iUser]\r\n".\

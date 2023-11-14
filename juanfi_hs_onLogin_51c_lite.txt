@@ -1,0 +1,77 @@
+# juanfi_hs_onLogin_51c_lite
+# by: Chloe Renae & Edmar Lozada
+# ------------------------------
+
+# Telegram Notification: 0=disable or 1=enable
+local isTelegram 0
+# Telegram Token
+local iTGBotToken "xxxxxxxxxx:xxxxxxxxxxxxx-xxxxxxxxxxxxxxx-xxxxx"
+# Telegram Group Chat ID
+local iTGrpChatID "xxxxxxxxxxxxxx"
+
+# Get User Data
+local iUser $username
+local iDMac $"mac-address"
+local iDInt $interface
+local aUser [/ip hotspot user get $iUser]
+local aNote [toarray ($aUser->"comment")]
+local iValidity [totime ($aNote->0)]
+local iExtUCode ($aNote->2)
+
+# Check Valid Entry
+if ($iValidity>=0 and ($iExtUCode=0 or $iExtUCode=1)) do={
+  local eReplace do={
+    local iRet
+    for i from=0 to=([len $1]-1) do={
+      local x [pick $1 $i]
+      if ($x=$2) do={set x $3}
+      set iRet ($iRet.$x)
+    }; return $iRet
+  }
+  local iUsrTime ($aUser->"limit-uptime")
+  local iUsrFile [$eReplace $iDMac ":" ""]
+  local iHotSpot  [/ip hotspot profile get [.. get [find interface=$iDInt] profile] html-directory]
+
+# ADD USER SCHEDULER
+  if ([/system scheduler find name=$iUser]="") do={
+    /system scheduler add name=$iUser interval=0 \
+    on-event=("# EXPIRE ( $iUser ) #\r\n".\
+              "local iUser $iUser; local iDMac $iDMac\r\n".\
+              "local iUsrFile $iUsrFile; local iHotSpot $iHotSpot\r\n".\
+              "/ip hotspot active remove [find user=\$iUser]\r\n".\
+              "/ip hotspot cookie remove [find user=\$iUser]\r\n".\
+              "/ip hotspot cookie remove [find mac-address=\$iDMac]\r\n".\
+              "/system scheduler  remove [find name=\$iUser]\r\n".\
+              "/ip hotspot user   remove [find name=\$iUser]\r\n".\
+              "  /file remove [find name=\"\$iHotSpot/data/\$iUsrFile.txt\"]\r\n".\
+              "# END #\r\n")
+    local x 10;while (($x>0) and ([/system scheduler find name=$iUser]="")) do={set x ($x-1);delay 1s}
+    set iExtUCode 0
+  }
+
+  local iInterval
+# ADDNEW USER MODULE
+  if ($iExtUCode=0) do={
+    set iInterval $iValidity
+  }
+
+# EXTEND USER MODULE
+  if ($iExtUCode=1) do={
+    set iInterval ($iValidity + [/system scheduler get [find name=$iUser] interval])
+  }
+
+# UPDATE USER MODULE
+  if ($iValidity != 0s and $iInterval < $iUsrTime) do={ set iInterval ($iUsrTime + $iValidity) }; # BUG FIX
+  # if ($iValidity = 0s and $iUsrTime > 1d) do={ set iInterval $iUsrTime }; # BUG FIX (temporary)
+  /system scheduler set [find name=$iUser] interval=$iInterval
+  /ip hotspot user set [find name=$iUser] comment=""
+
+
+# User Data Variables
+  local iUserEnd [/system scheduler get [find name=$iUser] next-run]
+  if ([len $iUserEnd]=0) do={ set iUserEnd "NO EXPIRATION" }
+      /file print file="$iHotSpot/data/$iUsrFile.txt" where name="$iUsrFile.txt"
+      local x 10;while (($x>0) and ([/file find name="$iHotSpot/data/$iUsrFile.txt"]="")) do={set x ($x-1);delay 1s}
+        /file set "$iHotSpot/data/$iUsrFile" contents="$iUser#$iUserEnd"
+
+}
