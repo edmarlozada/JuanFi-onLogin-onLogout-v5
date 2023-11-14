@@ -213,7 +213,7 @@ if ($iValidity>=0 and ($iExtUCode=0 or $iExtUCode=1)) do={
 onLogout Script:
 
 ```bash
-# juanfi_hs_onLogout_1b_full
+# juanfi_hs_onLogout_51a_full
 # by: Chloe Renae & Edmar Lozada
 # ------------------------------
 
