@@ -20,7 +20,7 @@ WARNING:
 ### Facebook Contact:
 - https://www.facebook.com/chloe.renae.9
 
-### Add this script in the hotspot user profile on login/onLogout event
+### Add this script in the hotspot user profile onLogin/onLogout event
 
 onLogin Script:
 
