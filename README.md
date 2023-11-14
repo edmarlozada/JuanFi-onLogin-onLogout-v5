@@ -1,14 +1,15 @@
 # JuanFi onLogin/onLogout v5
 
-What new in v5.1b (2023-11-13)
-- no need to define hotspot folder! ( major )
-- full error report on logs
-- user scheduler is created first
-- cancel user login if scheduler not created
-- extend code is used to check AddNew/Extend user
-- sales update functionalize
-- auto create data folder if missing
-- auto create sales files if missing
+What's in v5 (2023-11-13)
+- no need to define hotspot folder! { important }
+- full error report on logs ( full )
+- user scheduler is created first ( full/normal/lite )
+- cancel user login if scheduler not created ( full/normal )
+- log AddNew/Extend user ( full/normal )
+- extend code is used ( full/normal/lite )
+- sales update functionalize ( full/normal )
+- auto create data folder if missing ( full )
+- auto create sales files if missing ( full )
 
 WARNING:
 - test first before deploy!
@@ -21,10 +22,10 @@ WARNING:
 
 ### Add this script in the hotspot user profile on login/onLogout event
 
-onLogin script:
+onLogin Script:
 
 ```bash
-# juanfi_hs_onLogin_51b_full
+# juanfi_hs_onLogin_51c_full
 # by: Chloe Renae & Edmar Lozada
 # ------------------------------
 
@@ -53,14 +54,13 @@ if ($iValidity>=0 and ($iExtUCode=0 or $iExtUCode=1)) do={
     local iRet
     for i from=0 to=([len $1]-1) do={
       local x [pick $1 $i]
-      if ($x = $2) do={set x $3}
+      if ($x=$2) do={set x $3}
       set iRet ($iRet.$x)
     }; return $iRet
   }
   local iUsrTime ($aUser->"limit-uptime")
   local iUsrFile [$eReplace $iDMac ":" ""]
   local iHotSpot  [/ip hotspot profile get [.. get [find interface=$iDInt] profile] html-directory]
-  local iSySched  ([/system scheduler find name=$iUser]="")
 
 # ADD USER SCHEDULER
   do {
@@ -68,10 +68,7 @@ if ($iValidity>=0 and ($iExtUCode=0 or $iExtUCode=1)) do={
     /system scheduler add name=$iUser interval=0 \
     on-event=("# EXPIRE ( $iUser ) #\r\n".\
               "do {\r\n".\
-              "local iUser $iUser\r\n".\
-              "local iDMac $iDMac\r\n".\
-              "local iHotSpot $iHotSpot\r\n".\
-              "local iUsrFile $iUsrFile\r\n".\
+              "local iUser $iUser; local iDMac $iDMac; local iHotSpot $iHotSpot; local iUsrFile $iUsrFile\r\n".\
               "log info \"EXPIRE USER ( Validity ) => user=[\$iUser] mac=[\$iDMac]\"\r\n".\
               "/ip hotspot active remove [find user=\$iUser]\r\n".\
               "/ip hotspot cookie remove [find user=\$iUser]\r\n".\
@@ -96,20 +93,13 @@ if ($iValidity>=0 and ($iExtUCode=0 or $iExtUCode=1)) do={
   }
   } on-error={log error "( $iUser ) ONLOGIN ERROR! Extend User Module"}
 
+  local iInterval
 # ADDNEW USER MODULE
   do {
   if ($iExtUCode=0) do={
     log warning "ADDNEW USER ( $iVendoNme ) => user=[$iUser] mac=[$iDMac] iUsrTime=[$iUsrTime] amt=[$iSalesAmt]"
-    local iInterval $iValidity
-    if (($iValidity != 0s) and ($iValidity < $iUsrTime)) do={
-      set iInterval ($iValidity + $iUsrTime)
-    }
-    # if (($iValidity = 0s) and ($iUsrTime > 1d)) do={ set iInterval $iUsrTime }; # BUG FIX (temporary)
-     set iExtUCode "AddNew User"
-    /system scheduler set [find name=$iUser] interval=$iInterval
-    /ip hotspot user set [find name=$iUser] email="active@gmail.com"
-    /ip hotspot user set [find name=$iUser] comment=""
-    log info "( $iUser ) iValidity=[$iValidity] iInterval=[$iInterval]"
+    set iInterval $iValidity
+    set iExtUCode "AddNew User"
   }
   } on-error={log error "( $iUser ) ONLOGIN ERROR! AddNew User Module"}
 
@@ -117,20 +107,21 @@ if ($iValidity>=0 and ($iExtUCode=0 or $iExtUCode=1)) do={
   do {
   if ($iExtUCode=1) do={
     log warning "EXTEND USER ( $iVendoNme ) => user=[$iUser] mac=[$iDMac] iUsrTime=[$iUsrTime] amt=[$iSalesAmt]"
-    local iInterval [/system scheduler get [find name=$iUser] interval]
-    if (($iValidity != 0s) and (($iValidity + $iInterval) < $iUsrTime)) do={
-      set iInterval ($iValidity + $iUsrTime)
-    } else={
-      set iInterval ($iValidity + $iInterval)
-    }
-    # if (($iValidity = 0s) and ($iUsrTime > 1d)) do={ set iInterval $iUsrTime }; # BUG FIX (temporary)
+    set iInterval ($iValidity + [/system scheduler get [find name=$iUser] interval])
     set iExtUCode "Extend User"
-    /system scheduler set [find name=$iUser] interval=$iInterval
-    /ip hotspot user set [find name=$iUser] email="active@gmail.com"
-    /ip hotspot user set [find name=$iUser] comment=""
-    log info "( $iUser ) iValidity=[$iValidity] iInterval=[$iInterval]"
   }
   } on-error={log error "( $iUser ) ONLOGIN ERROR! Extend User Module"}
+
+# UPDATE USER MODULE
+  do {
+  if ($iValidity != 0s and $iInterval < $iUsrTime) do={ set iInterval ($iUsrTime + $iValidity) }; # BUG FIX
+  # if ($iValidity = 0s and $iUsrTime > 1d) do={ set iInterval $iUsrTime }; # BUG FIX (temporary)
+  /system scheduler set [find name=$iUser] interval=$iInterval
+  /ip hotspot user set [find name=$iUser] email="active@gmail.com"
+  /ip hotspot user set [find name=$iUser] comment=""
+  log info "( $iUser ) iValidity=[$iValidity] iInterval=[$iInterval]"
+  } on-error={log error "( $iUser ) ONLOGIN ERROR! Update User Module"}
+
 
 # User Data Variables
   local iDateBeg [/system scheduler get [find name=$iUser] start-date]
@@ -210,14 +201,14 @@ if ($iValidity>=0 and ($iExtUCode=0 or $iExtUCode=1)) do={
                     "Total Month: $iSalesMonth%0A".\
                     "<<=====================>>")
     local iMessage [$eReplace ($iMessage) " " "%20"]
-    /tool fetch url="https://api.telegram.org/bot$iTGBotToken/sendmessage?chat_id=$iTGrpChatID&text=$iMessage" keep-result=no
+    do {/tool fetch url="https://api.telegram.org/bot$iTGBotToken/sendmessage?chat_id=$iTGrpChatID&text=$iMessage" keep-result=no} on-error={}
   }
   } on-error={log error "( $iUser ) ONLOGIN ERROR! Telegram Reporting Module"}
 
 }
 ```
 
-onLogout script:
+onLogout Script:
 
 ```bash
 # juanfi_hs_onLogout_1b_full
