@@ -1,0 +1,7 @@
+# juanfi_hs_onLogout_51b_lite
+# by: Chloe Renae & Edmar Lozada
+# ------------------------------
+
+if (($cause="session timeout") or ($cause="traffic limit reached")) do={
+  /system scheduler set [find name=$user] interval=5s
+}
