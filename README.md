@@ -1,6 +1,6 @@
 # JuanFi onLogin/onLogout v5
 
-What's in v5.1d (2023-12-01)
+What's in v5 (2023-12-01)
 - no need to define hotspot folder! { important }
 - fix error on "0" validity ( full/normal/lite )
 - user comment details added ( full/normal )
