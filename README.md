@@ -1,7 +1,9 @@
-# JuanFi onLogin/onLogout v5
+# JuanFi onLogin/onLogout v5.1d
 
-What's in v5 (2023-11-13)
+What's in v5.1d (2023-12-01)
 - no need to define hotspot folder! { important }
+- fix error on "0" validity ( full/normal/lite )
+- user comment details added ( full/normal )
 - create logs for full error report ( full/normal )
 - user scheduler is created first ( full/normal/lite )
 - cancel user login if scheduler not created ( full/normal )
@@ -26,7 +28,7 @@ WARNING:
 onLogin Script:
 
 ```bash
-# juanfi_hs_onLogin_51c_full
+# juanfi_hs_onLogin_51d_full
 # by: Chloe Renae & Edmar Lozada
 # ------------------------------
 
@@ -61,7 +63,7 @@ if ($iValidity>=0 and ($iExtUCode=0 or $iExtUCode=1)) do={
   }
   local iUsrTime ($aUser->"limit-uptime")
   local iUsrFile [$eReplace $iDMac ":" ""]
-  local iHotSpot  [/ip hotspot profile get [.. get [find interface=$iDInt] profile] html-directory]
+  local iHotSpot [/ip hotspot profile get [.. get [find interface=$iDInt] profile] html-directory]
 
 # ADD USER SCHEDULER
   do {
@@ -69,8 +71,8 @@ if ($iValidity>=0 and ($iExtUCode=0 or $iExtUCode=1)) do={
     /system scheduler add name=$iUser interval=0 \
     on-event=("# EXPIRE ( $iUser ) #\r\n".\
               "do {\r\n".\
-              "local iUser $iUser; local iDMac $iDMac\r\n".\
-              "local iUsrFile $iUsrFile; local iHotSpot $iHotSpot\r\n".\
+              "local iUser \"$iUser\"; local iDMac \"$iDMac\"\r\n".\
+              "local iUsrFile \"$iUsrFile\"; local iHotSpot \"$iHotSpot\"\r\n".\
               "log info \"EXPIRE USER ( Validity ) => user=[\$iUser] mac=[\$iDMac]\"\r\n".\
               "/ip hotspot active remove [find user=\$iUser]\r\n".\
               "/ip hotspot cookie remove [find user=\$iUser]\r\n".\
@@ -116,41 +118,45 @@ if ($iValidity>=0 and ($iExtUCode=0 or $iExtUCode=1)) do={
 
 # UPDATE USER MODULE
   do {
-  if ($iValidity != 0s and $iInterval < $iUsrTime) do={ set iInterval ($iUsrTime + $iValidity) }; # BUG FIX
-  # if ($iValidity = 0s and $iUsrTime > 1d) do={ set iInterval $iUsrTime }; # BUG FIX (temporary)
+  # if ($iInterval = 0s and $iUsrTime > 1d) do={ set iInterval $iUsrTime }; # BUG FIX (temporary)
+  if ($iInterval != 0s and $iInterval < $iUsrTime) do={ set iInterval ($iUsrTime + $iInterval) }; # BUG FIX
   /system scheduler set [find name=$iUser] interval=$iInterval
   /ip hotspot user set [find name=$iUser] comment=""
   /ip hotspot user set [find name=$iUser] email="active@gmail.com"
-  log info "( $iUser ) iValidity=[$iValidity] iInterval=[$iInterval]"
   } on-error={log error "( $iUser ) ONLOGIN ERROR! Update User Module"}
 
 
 # User Data Variables
   local iDateBeg [/system scheduler get [find name=$iUser] start-date]
   local iTimeBeg [/system scheduler get [find name=$iUser] start-time]
-  local iUserBeg ($iDateBeg." ".$iTimeBeg)
+  local iUsrBeg0 ($iDateBeg." ".$iTimeBeg)
   local iNextRun [/system scheduler get [find name=$iUser] next-run]
-  local iUserEnd $iNextRun
-  if ([len $iNextRun]=0) do={ set iUserEnd "NO EXPIRATION" }
+  local iUsrEnd0 "NO EXPIRATION"
+  if ([len $iNextRun]>1) do={
+    set iUsrEnd0 $iNextRun
+  }
+  log info "( $iUser ) Validity=[$iValidity] Interval=[$iInterval] Beg=[$iUsrBeg0] End=[$iUsrEnd0]"
 
 # AutoCreate Data Folder if NOT FOUND!
   if ([/file find name="$iHotSpot"]!="") do={
-    if ([/file find name="$iHotSpot/data"]="") do={
-      log error "( $iUser ) ONLOGIN: /file [$iHotSpot/data/] => AUTOCREATE!"
-      do { /tool fetch dst-path=("$iHotSpot/data/.") url="https://127.0.0.1/" } on-error={ }
-      local x 10;while (($x>0) and ([/file find name="$iHotSpot/data"]="")) do={set x ($x-1);delay 1s}
-    }
+  if ([/file find name="$iHotSpot/data"]="") do={
+    log error "( $iUser ) ONLOGIN: /file [$iHotSpot/data/] => AUTOCREATE!"
+    do { /tool fetch dst-path=("$iHotSpot/data/.") url="https://127.0.0.1/" } on-error={ }
+    local x 10;while (($x>0) and ([/file find name="$iHotSpot/data"]="")) do={set x ($x-1);delay 1s}
+  }
   } else={log error "( $iUser ) ONLOGIN ERROR! /file [$iHotSpot] => NOT FOUND!"}
 # Create User Data File
   do {
   if ([/file find name="$iHotSpot"]!="") do={
-    if ([/file find name="$iHotSpot/data"]!="") do={
-      /file print file="$iHotSpot/data/$iUsrFile.txt" where name="$iUsrFile.txt"
-      local x 10;while (($x>0) and ([/file find name="$iHotSpot/data/$iUsrFile.txt"]="")) do={set x ($x-1);delay 1s}
-      if ([/file find name="$iHotSpot/data/$iUsrFile.txt"]!="") do={
-        /file set "$iHotSpot/data/$iUsrFile" contents="$iUser#$iUserEnd"
-      } else={log error "( $iUser ) ONLOGIN ERROR! /file [$iHotSpot/data/$iUsrFile.txt] => NOT FOUND!"}
-    } else={log error "( $iUser ) ONLOGIN ERROR! /file [$iHotSpot/data] => NOT FOUND!"}
+  if ([/file find name="$iHotSpot/data"]!="") do={
+  if ([/file find name="$iHotSpot/data/$iUsrFile.txt"]="") do={
+    /file print file="$iHotSpot/data/$iUsrFile.txt" where name="$iUsrFile.txt"
+    local x 10;while (($x>0) and ([/file find name="$iHotSpot/data/$iUsrFile.txt"]="")) do={set x ($x-1);delay 1s}
+  }
+  if ([/file find name="$iHotSpot/data/$iUsrFile.txt"]!="") do={
+    /file set "$iHotSpot/data/$iUsrFile" contents="$iUser#$iUsrEnd0"
+  } else={log error "( $iUser ) ONLOGIN ERROR! /file [$iHotSpot/data/$iUsrFile.txt] => NOT FOUND!"}
+  } else={log error "( $iUser ) ONLOGIN ERROR! /file [$iHotSpot/data] => NOT FOUND!"}
   } else={log error "( $iUser ) ONLOGIN ERROR! /file [$iHotSpot] => NOT FOUND!"}
   } on-error={log error "( $iUser ) ONLOGIN ERROR! AutoCreate User Data File Module"}
 
@@ -179,9 +185,9 @@ if ($iValidity>=0 and ($iExtUCode=0 or $iExtUCode=1)) do={
   }
 
 # Update Sales ( Today )
-  local iSalesToday [$eSaveAmt $iUser $iSalesAmt "todayincome" "Sales Daily JuanFi ( TOTAL )"]
+  local iSalesToday [$eSaveAmt $iUser $iSalesAmt "todayincome" "JuanFi Sales Daily ( TOTAL )"]
 # Update Sales ( Month )
-  local iSalesMonth [$eSaveAmt $iUser $iSalesAmt "monthlyincome" "Sales Monthly JuanFi ( TOTAL )"]
+  local iSalesMonth [$eSaveAmt $iUser $iSalesAmt "monthlyincome" "JuanFi Sales Monthly ( TOTAL )"]
 
 # Telegram Reporting
   do {
@@ -196,8 +202,8 @@ if ($iValidity>=0 and ($iExtUCode=0 or $iExtUCode=1)) do={
                     "Active Users: $iUActive%0A%0A".\
                     "Vendo Name : $iVendoNme%0A".\
                     "User Time  : $iUsrTime%0A".\
-                    "Beg: $iUserBeg%0A".\
-                    "End: $iUserEnd%0A".\
+                    "Beg: $iUsrBeg0%0A".\
+                    "End: $iUsrEnd0%0A".\
                     "Sale Amount: $iSalesAmt%0A".\
                     "Total Today: $iSalesToday%0A".\
                     "Total Month: $iSalesMonth%0A".\
@@ -207,6 +213,13 @@ if ($iValidity>=0 and ($iExtUCode=0 or $iExtUCode=1)) do={
   }
   } on-error={log error "( $iUser ) ONLOGIN ERROR! Telegram Reporting Module"}
 
+# Comment User Login Info
+  do {
+  /ip hotspot user  set [find name=$iUser] comment="+ ( $interface ) beg=[$iUsrBeg0] end=[$iUsrEnd0] mac=[$iDMac] Interval=[$iInterval]"
+  /system scheduler set [find name=$iUser] comment="+ ( $interface ) beg=[$iUsrBeg0] end=[$iUsrEnd0] mac=[$iDMac] UsrLimit=[$iUsrTime]"
+  } on-error={log error "( $iUser ) ONLOGIN ERROR! Update User Comment Info Module"}
+
+  log info "( $iUser ) END"
 }
 ```
 
