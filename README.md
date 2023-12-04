@@ -37,12 +37,10 @@ onLogin Script:
 # by: Chloe Renae & Edmar Lozada
 # ------------------------------
 
-# Telegram Notification: 0=disable or 1=enable
-local isTelegram 0
-# Telegram Token
-local iTGBotToken "xxxxxxxxxx:xxxxxxxxxxxxx-xxxxxxxxxxxxxxx-xxxxx"
-# Telegram Group Chat ID
-local iTGrpChatID "xxxxxxxxxxxxxx"
+# Telegram Notification:
+local isTelegram 0 ;# 0=disable or 1=enable
+local iTGBotToken "xxxxxxxxxx:xxxxxxxxxxxxx-xxxxxxxxxxxxxxx-xxxxx" ;# Telegram Bot Token
+local iTGrpChatID "xxxxxxxxxxxxxx" ;# Telegram Group Chat ID
 
 # Get User Data
 local iUser $username
