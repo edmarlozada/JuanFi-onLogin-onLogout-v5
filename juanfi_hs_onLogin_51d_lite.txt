@@ -2,13 +2,6 @@
 # by: Chloe Renae & Edmar Lozada
 # ------------------------------
 
-# Telegram Notification: 0=disable or 1=enable
-local isTelegram 0
-# Telegram Token
-local iTGBotToken "xxxxxxxxxx:xxxxxxxxxxxxx-xxxxxxxxxxxxxxx-xxxxx"
-# Telegram Group Chat ID
-local iTGrpChatID "xxxxxxxxxxxxxx"
-
 # Get User Data
 local iUser $username
 local iDMac $"mac-address"
