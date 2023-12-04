@@ -226,22 +226,23 @@ if ($iValidity>=0 and ($iExtUCode=0 or $iExtUCode=1)) do={
 onLogout Script:
 
 ```bash
-# juanfi_hs_onLogout_51a_full
+# juanfi_hs_onLogout_51c_full
 # by: Chloe Renae & Edmar Lozada
 # ------------------------------
 
-# TimeLimit = session timeout
-# DataLimit = traffic limit reached
-if (($cause="session timeout") or ($cause="traffic limit reached")) do={
+# Expire User
+do {
+local iUsrTime [/ip hotspot user get [find name="$user"] limit-uptime]
+local iUseTime [/ip hotspot user get [find name="$user"] uptime]
+if ($cause="traffic limit reached" or ($cause="session timeout" and $iUsrTime<=$iUseTime)) do={
   local eReplace do={
     local iRet
     for i from=0 to=([len $1]-1) do={
       local x [pick $1 $i]
-      if ($x = $2) do={set x $3}
+      if ($x=$2) do={set x $3}
       set iRet ($iRet.$x)
     }; return $iRet
   }
-  do {
   local iUser $username
   local iDMac $"mac-address"
   local iDInt $interface
@@ -257,6 +258,6 @@ if (($cause="session timeout") or ($cause="traffic limit reached")) do={
   if ([/file find name="$iHotSpot/data/$iUsrFile.txt"]!="") do={
     /file remove [find name="$iHotSpot/data/$iUsrFile.txt"]
   } else={log error "( $iUser ) SCHEDULER ERROR! [$iHotSpot/data/$iUsrFile.txt] => NOT FOUND!"}
-  } on-error={log error "( $iUser ) ONLOGOUT ERROR! Expire User Module"}
 }
+} on-error={log error "( $iUser ) ONLOGOUT ERROR! Expire User Module"}
 ```
