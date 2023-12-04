@@ -1,7 +1,7 @@
 # JuanFi onLogin/onLogout v5
 
-What's in v5 (2023-12-01)
-- no need to define hotspot folder! { important }
+What's in onLogin v5.1d (2023-12-01)
+- no need to define hotspot folder! ( copyright )
 - fix error on "0" validity ( full/normal/lite )
 - user comment details added ( full/normal )
 - create logs for full error report ( full/normal )
@@ -13,6 +13,11 @@ What's in v5 (2023-12-01)
 - auto create sales files if missing ( full )
 - sales update functionalize ( full/normal )
 - telegram reporting ( full/normal )
+
+What's in onLogout v5.1c (2023-12-04)
+- no need to define hotspot folder! ( copyright )
+- create logs for full error report ( full/normal )
+- added extra filters for security
 
 WARNING:
 - test first before deploy!
