@@ -1,0 +1,10 @@
+# juanfi_hs_onLogout_51c_lite
+# by: Chloe Renae & Edmar Lozada
+# ------------------------------
+
+# Expire User
+local iUsrTime [/ip hotspot user get [find name="$user"] limit-uptime]
+local iUseTime [/ip hotspot user get [find name="$user"] uptime]
+if ($cause="traffic limit reached" or ($cause="session timeout" and $iUsrTime<=$iUseTime)) do={
+  /system scheduler set [find name=$user] interval=5s
+}
